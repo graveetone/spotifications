@@ -4,6 +4,8 @@ from typing import Optional
 import os
 
 DEFAULT_RELEASES_GROUPS = ",".join(("album", "single", "compilation"))
+
+
 class BaseCrawler(ABC):
     @abstractmethod
     def get_artists_ids(self): ...
@@ -44,17 +46,24 @@ class SpotifyCrawler(BaseCrawler):
             response = self.client.artist_albums(
                 artist_id=artist_id, offset=offset, include_groups=DEFAULT_RELEASES_GROUPS,
             )
+
             for release in response['items']:
                 release_date = self._parse_release_date(release['release_date'])
                 # pydantic model for release
 
                 if release_date > newer_than:
                     artists = ", ".join(artist['name'] for artist in release['artists'])
-                    artists_albums.append(
-                        f"{artists} - {release['name']}"
-                    )
-            # print(f"New albums: {artists_albums}")
-            # print(response['next'])
+                    release_info = {
+                        "name": release["name"],
+                        "release_date": release_date.strftime("%d.%m.%Y"),
+                        "artists": artists,
+                        "url": release["external_urls"]["spotify"],
+                    }
+                    if images := release.get('images', []):
+                        release_info['cover_url'] = images[0]['url']
+
+                    artists_albums.append(release_info)
+
             if os.environ.get('SPOTIFICATIONS_DEBUG') or response['total'] <= offset:
                 break
 
@@ -68,6 +77,7 @@ class SpotifyCrawler(BaseCrawler):
             date += "-01-01"
 
         return datetime.fromisoformat(date)
+
 
 
     def refresh_token(self):
