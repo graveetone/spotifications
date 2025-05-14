@@ -12,12 +12,12 @@ load_dotenv()
 
 NOTITICATION_PATTERN = """
 ᯤ New release from {artists}!
-<a href='{url}'>{name}</a> [{release_date}]
+[{release_date}]
 """
 
 if __name__ == "__main__":
     sp = get_spotify_proxy()
-    last_crawling_date = datetime.datetime.fromisoformat("2025-05-01")
+    last_crawling_date = datetime.datetime.fromisoformat("2025-05-14")
 
     crawler = (
         MockSpotifyCrawler(spotipy_client=sp)
@@ -35,22 +35,28 @@ if __name__ == "__main__":
 
     for i, aid in enumerate(artists_ids, start=1):
         releases = crawler.get_artists_releases(artist_id=aid, newer_than=last_crawling_date)
-        # breakpoint()
+
         if releases:
             new_releases.extend(releases)
         print(f"Processed {i}/{len(artists_ids)}")
 
-    # from pprint import pprint
-    # pprint(new_releases)
-    # breakpoint()
+    if not new_releases:
+        send_image(
+            caption=f'No new releases from {last_crawling_date.strftime("%d.%m.%Y")}',
+            image_url="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D2NHuUzVqIFU&psig=AOvVaw0r9OqqtwemztU4Y-CqgIUB&ust=1747341520769000&source=images&cd=vfe&opi=89978449&ved=0CBAQjRxqFwoTCKDV7cboo40DFQAAAAAdAAAAABAE",
+            button_link="https://open.spotify.com/playlist/1aXheOUOZAgiOfvEjCD31N?si=1e450a0460274895",
+            button_caption="Check ListenToMe playlist!",
+        )
+        exit(0)
+
     for release in new_releases:
         send_image(
             caption=NOTITICATION_PATTERN.format(
                 artists=release['artists'],
-                name=release['name'],
                 release_date=release['release_date'],
-                url=release['url'],
             ),
             image_url=release['cover_url'],
+            button_link=release['url'],
+            button_caption=release['name'],
         )
 
