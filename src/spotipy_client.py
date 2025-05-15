@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 import os
 
-DEFAULT_RELEASES_GROUPS = ",".join(("album", "single", "compilation"))
+DEFAULT_RELEASES_GROUPS = ",".join(("album", "single", "compilation", "appears_on"))
 
 
 class BaseCrawler(ABC):

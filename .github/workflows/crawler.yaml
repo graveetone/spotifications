@@ -3,7 +3,7 @@ name: 🎧 Crawling latest artists releases
 on:
   workflow_dispatch:
   schedule:
-    - cron: '36 15 * * *'
+    - cron: '36 06 * * *'
 
 jobs:
   run-crawler:
