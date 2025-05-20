@@ -4,7 +4,7 @@ from typing import Optional
 import os
 
 DEFAULT_RELEASES_GROUPS = ",".join(("album", "single", "compilation", "appears_on"))
-
+VARIOUS_ARTISTS = "Various Artists"
 
 class BaseCrawler(ABC):
     @abstractmethod
@@ -53,6 +53,9 @@ class SpotifyCrawler(BaseCrawler):
 
                 if release_date > newer_than:
                     artists = ", ".join(artist['name'] for artist in release['artists'])
+                    if VARIOUS_ARTISTS in artists:
+                        continue
+
                     release_info = {
                         "name": release["name"],
                         "release_date": release_date.strftime("%d.%m.%Y"),
