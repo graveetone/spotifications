@@ -17,7 +17,7 @@ NOTITICATION_PATTERN = """
 
 if __name__ == "__main__":
     sp = get_spotify_proxy()
-    last_crawling_date = datetime.datetime.fromisoformat("2025-05-14")
+    last_crawling_date = datetime.datetime.now().date()
 
     crawler = (
         MockSpotifyCrawler(spotipy_client=sp)

@@ -72,11 +72,11 @@ class SpotifyCrawler(BaseCrawler):
         return artists_albums
 
     @staticmethod
-    def _parse_release_date(date: str) -> datetime:
+    def _parse_release_date(date: str) -> datetime.date:
         if len(date) == 4:
             date += "-01-01"
 
-        return datetime.fromisoformat(date)
+        return datetime.fromisoformat(date).date()
 
 
 
