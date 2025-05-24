@@ -15,9 +15,17 @@ NOTITICATION_PATTERN = """
 [{release_date}]
 """
 
+def update_last_crawling_date(last_crawling_date):
+    with open(".last_crawling_date", "w") as file:
+        file.write(str(last_crawling_date))
+
+def get_last_crawling_date():
+    with open(".last_crawling_date") as file:
+        return datetime.datetime.fromisoformat(file.readline())
+
 if __name__ == "__main__":
     sp = get_spotify_proxy()
-    last_crawling_date = datetime.datetime.now().date()
+    last_crawling_date = get_last_crawling_date()
 
     crawler = (
         MockSpotifyCrawler(spotipy_client=sp)
@@ -39,6 +47,8 @@ if __name__ == "__main__":
         if releases:
             new_releases.extend(releases)
         print(f"Processed {i}/{len(artists_ids)}")
+
+    update_last_crawling_date(datetime.datetime.now())
 
     if not new_releases:
         send_image(
