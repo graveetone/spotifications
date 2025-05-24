@@ -35,7 +35,7 @@ jobs:
       - name: Run Python script
         run: |
           source .venv/bin/activate
-          python src/main.py
+#          python src/main.py
         env:
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
