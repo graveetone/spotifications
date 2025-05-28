@@ -13,7 +13,8 @@ def get_auth_manager():
         client_id=os.environ.get("SPOTIFY_CLIENT_ID"),
         client_secret=os.environ.get("SPOTIFY_CLIENT_SECRET"),
         redirect_uri="https://google.com",
-        scope="user-follow-read"
+        scope="playlist-modify-public user-follow-read",
+        open_browser=False
     )
 
 

@@ -29,7 +29,7 @@ class SpotifyCrawler(BaseCrawler):
                 item['id'] for item in response['items']
             )
 
-            if os.environ.get('SPOTIFICATIONS_DEBUG') or response['next'] is None:
+            if os.environ.get('SPOTIFICATIONS_DEBUG') == "true" or response['next'] is None:
                 break
 
             after = followed_artists_ids[-1]
@@ -61,6 +61,7 @@ class SpotifyCrawler(BaseCrawler):
                         "release_date": release_date.strftime("%d.%m.%Y"),
                         "artists": artists,
                         "url": release["external_urls"]["spotify"],
+                        "song_id": release["uri"]
                     }
                     if images := release.get('images', []):
                         release_info['cover_url'] = images[0]['url']
@@ -81,7 +82,13 @@ class SpotifyCrawler(BaseCrawler):
 
         return datetime.fromisoformat(date)
 
+    def add_song_to_playlist(self, songs_ids: list):
+        pid = "3vtxCgkU9wpiyppMvbWJow"
+        self.client.playlist_add_items(pid, songs_ids)
 
+    def get_album_songs(self, album_id: list):
+        album_songs = self.client.album_tracks(album_id)
+        return [song['uri'] for song in album_songs['items']]
 
     def refresh_token(self):
         print("Refreshing token")

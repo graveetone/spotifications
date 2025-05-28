@@ -20,9 +20,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: .venv
-          key: uv-${{ runner.os }}-${{ hashFiles('requirements.txt') }}
+          key: uv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}
           restore-keys: |
-            uv-${{ runner.os }}-
+            uv-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Create venv and install dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
@@ -32,7 +32,17 @@ jobs:
           source .venv/bin/activate
           uv pip install -r requirements.txt
 
-      - name: Run Python script
+      - name: Update playlist with saved releases
+        run: |
+          source .venv/bin/activate
+          python src/playlist_updater.py
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+          SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
+
+      - name: Crawl new updates
         run: |
           source .venv/bin/activate
           python src/main.py

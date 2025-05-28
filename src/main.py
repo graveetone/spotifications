@@ -68,5 +68,6 @@ if __name__ == "__main__":
             image_url=release['cover_url'],
             button_link=release['url'],
             button_caption=release['name'],
+            song_id=release['song_id']
         )
 
