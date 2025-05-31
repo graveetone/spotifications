@@ -3,7 +3,6 @@ import json
 import os
 from dotenv import load_dotenv
 
-from mock_spotipy_client import MockSpotifyCrawler
 from proxy import get_spotify_proxy
 from spotipy_client import SpotifyCrawler
 
@@ -46,11 +45,7 @@ def process_updates(crawler):
 if __name__ == "__main__":
     sp = get_spotify_proxy()
 
-    crawler = (
-        MockSpotifyCrawler(spotipy_client=sp)
-        if os.environ.get("USE_MOCK_CRAWLER") == "true"
-        else SpotifyCrawler(spotipy_client=sp)
-    )
+    crawler = SpotifyCrawler(spotipy_client=sp)
 
     crawler.refresh_token()
     process_updates(crawler)

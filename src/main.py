@@ -5,7 +5,6 @@ from dotenv import load_dotenv
 
 from proxy import get_spotify_proxy
 from spotipy_client import SpotifyCrawler
-from mock_spotipy_client import MockSpotifyCrawler
 from telegram_notifier import send_image
 
 load_dotenv()
@@ -27,11 +26,7 @@ if __name__ == "__main__":
     sp = get_spotify_proxy()
     last_crawling_date = get_last_crawling_date()
 
-    crawler = (
-        MockSpotifyCrawler(spotipy_client=sp)
-        if os.environ.get("USE_MOCK_CRAWLER") == "true"
-        else SpotifyCrawler(spotipy_client=sp)
-    )
+    crawler = SpotifyCrawler(spotipy_client=sp)
 
     crawler.refresh_token()
 
