@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 
 from proxy import get_spotify_proxy
 from spotipy_client import SpotifyCrawler
+from telegram_notifier import send_image
 
 load_dotenv()
 
@@ -33,13 +34,19 @@ def process_updates(crawler):
             release_id = json.loads(query['data'])['song_id']
 
             songs = crawler.get_album_songs(release_id)
-            songs_ids.extend(songs)
+            songs_ids.extend(songs) # make it set to ensure unique releases only
 
             last_update_id = update['update_id'] + 1
 
         # clear updates
         get_updates(last_update_id)
         crawler.add_song_to_playlist(songs_ids=songs_ids)
+        send_image(
+            caption=f'Playlist was updated with {len(songs_ids)} new songs!',
+            image_url="https://blog.happyfox.com/wp-content/uploads/2014/11/How-to-Rock-Customer-Engagement-like-Spotify.png",
+            button_link="https://open.spotify.com/playlist/3vtxCgkU9wpiyppMvbWJow?si=fe201e9ebfd84316",
+            button_caption="Check updates",
+        )
     print('processed')
 
 if __name__ == "__main__":
