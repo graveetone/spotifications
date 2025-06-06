@@ -3,7 +3,7 @@ name: 🆕 Updates playlist with chosen releases
 on:
   workflow_dispatch:
   schedule:
-    - cron: '36 15 * * *'
+    - cron: '36 15/2 * * *'
 
 jobs:
   update-playlist:
