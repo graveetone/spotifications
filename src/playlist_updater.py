@@ -40,6 +40,10 @@ def process_updates(crawler):
 
         # clear updates
         get_updates(last_update_id)
+        if not songs_ids:
+            print("No songs to add to playlist")
+            exit()
+
         crawler.add_song_to_playlist(songs_ids=songs_ids)
         send_image(
             caption=f'Playlist was updated with {len(songs_ids)} new songs!',
