@@ -5,12 +5,12 @@ from dotenv import load_dotenv
 
 from proxy import get_spotify_proxy
 from spotipy_client import SpotifyCrawler
+load_dotenv()
 from telegram_notifier import send_image
 
-load_dotenv()
 
 NOTITICATION_PATTERN = """
-ᯤ New release from {artists}!
+ᯤ New release <a href='{release_link}'>{release_name}</a> from {artists}!
 [{release_date}]
 """
 
@@ -59,6 +59,8 @@ if __name__ == "__main__":
             caption=NOTITICATION_PATTERN.format(
                 artists=release['artists'],
                 release_date=release['release_date'],
+                release_name=release["name"],
+                release_link=release['url'],
             ),
             image_url=release['cover_url'],
             button_link=release['url'],
