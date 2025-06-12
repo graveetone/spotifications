@@ -22,7 +22,7 @@ jobs:
           path: .venv
           key: uv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}
           restore-keys: |
-            uv-${{ runner.os }}-${{ runner.arch }}-
+            uv-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('requirements.txt') }}-
 
       - name: Create venv and install dependencies
         if: steps.cache-venv.outputs.cache-hit != 'true'
