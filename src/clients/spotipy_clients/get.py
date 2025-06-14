@@ -82,7 +82,7 @@ class GetSpotipyClient:
     @staticmethod
     def skip_release(release, newer_than) -> bool:
         return any((
-            VARIOUS_ARTISTS in release['artists'],
+            VARIOUS_ARTISTS in {artists['name'] for artists in release['artists']},
             GetSpotipyClient._parse_release_date(release['release_date']) <= newer_than,
         ))
 
