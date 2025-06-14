@@ -4,9 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from proxy import get_spotify_proxy
-from spotipy_client import SpotifyCrawler
-from telegram_notifier import send_image
-from constants import TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK
+from constants import TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 
@@ -20,7 +18,7 @@ def get_updates(offset=None):
     return resp.json()
 
 
-def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramCLient):
+def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClient):
     songs_ids = []
     last_update_id = None
 
@@ -49,7 +47,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramCLie
             print("No songs to add to playlist")
             exit()
 
-        spotipy_client.add_song_to_playlist(songs_ids=songs_ids)
+        spotipy_client.add_song_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)
         telegram_client.send_message_with_image(
             text=f'Playlist was updated with {len(songs_ids)} new songs!',
             image_url=PLAYLIST_UPDATED_IMAGE,
