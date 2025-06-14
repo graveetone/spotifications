@@ -1,70 +1,89 @@
 import datetime
 import os
-
+import json
 from dotenv import load_dotenv
-
 from proxy import get_spotify_proxy
-from spotipy_client import SpotifyCrawler
+
+from clients.spotipy_client import SpotipyClient
+from clients.telegram_client import TelegramClient
+
+from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID
+
 load_dotenv()
-from telegram_notifier import send_image
 
-
-NOTITICATION_PATTERN = """
-ᯤ New release <a href='{release_link}'>{release_name}</a> from {artists}!
-[{release_date}]
-"""
 
 def update_last_crawling_date(last_crawling_date):
     with open(".last_crawling_date", "w") as file:
         file.write(str(last_crawling_date))
 
+
 def get_last_crawling_date():
     with open(".last_crawling_date") as file:
         return datetime.datetime.fromisoformat(file.readline())
 
-if __name__ == "__main__":
-    sp = get_spotify_proxy()
-    last_crawling_date = get_last_crawling_date()
 
-    crawler = SpotifyCrawler(spotipy_client=sp)
+def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
+    print("Retrieving artists ids")
+    artists_ids = client.get_artists_ids()
 
-    crawler.refresh_token()
+    print(f"Crawling releases newer than {newer_than}")
 
     new_releases = []
-    print("Retrieving artists ids")
-    artists_ids = crawler.get_artists_ids()
-
-    print(f"Crawling releases newer than {last_crawling_date}")
-
     for i, aid in enumerate(artists_ids, start=1):
-        releases = crawler.get_artists_releases(artist_id=aid, newer_than=last_crawling_date)
+        releases = client.get_artist_releases(artist_id=aid, newer_than=newer_than)
 
         if releases:
             new_releases.extend(releases)
         print(f"Processed {i}/{len(artists_ids)}")
 
-    update_last_crawling_date(datetime.datetime.now())
+    return new_releases
+
+
+def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime):
+    telegram_client.send_message_with_image(
+        text=f'No new releases from {crawling_date.strftime("%d.%m.%Y")}',
+        image_url=NO_UPDATES_IMAGE,
+        keyboard=telegram_client.compose_keyboard(
+            dict(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check ListenToMe playlist!")
+        )
+    )
+
+
+def send_release_notification(telegram_client: TelegramClient, release: dict):
+    telegram_client.send_message_with_image(
+        text=NOTITICATION_PATTERN.format(
+            artists=release['artists'],
+            release_date=release['release_date'],
+            release_name=release["name"],
+            release_link=release['url'],
+        ),
+        image_url=release['cover_url'],
+        keyboard=telegram_client.compose_keyboard(
+            dict(url=release['url'], text=release['name']),
+            dict(text="➕", callback_data=json.dumps({"song_id": release["song_id"]}))
+        )
+    )
+
+
+def main():
+    spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
+    telegram_client = TelegramClient(chat_id=TELEGRAM_CHAT_ID, token=os.environ['TELEGRAM_BOT_TOKEN'])
+
+    last_crawling_date = get_last_crawling_date()
+
+    new_releases = get_artists_latest_releases(
+        client=spotipy_client,
+        newer_than=last_crawling_date,
+    )
 
     if not new_releases:
-        send_image(
-            caption=f'No new releases from {last_crawling_date.strftime("%d.%m.%Y")}',
-            image_url="https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3D2NHuUzVqIFU&psig=AOvVaw0r9OqqtwemztU4Y-CqgIUB&ust=1747341520769000&source=images&cd=vfe&opi=89978449&ved=0CBAQjRxqFwoTCKDV7cboo40DFQAAAAAdAAAAABAE",
-            button_link="https://open.spotify.com/playlist/1aXheOUOZAgiOfvEjCD31N?si=1e450a0460274895",
-            button_caption="Check ListenToMe playlist!",
-        )
-        exit(0)
+        notify_no_releases(telegram_client=telegram_client, crawling_date=last_crawling_date)
+    else:
+        for release in new_releases:
+            send_release_notification(telegram_client=telegram_client, release=release)
 
-    for release in new_releases:
-        send_image(
-            caption=NOTITICATION_PATTERN.format(
-                artists=release['artists'],
-                release_date=release['release_date'],
-                release_name=release["name"],
-                release_link=release['url'],
-            ),
-            image_url=release['cover_url'],
-            button_link=release['url'],
-            button_caption=release['name'],
-            song_id=release['song_id']
-        )
+    update_last_crawling_date(datetime.datetime.now())
 
+
+if __name__ == "__main__":
+    main()
