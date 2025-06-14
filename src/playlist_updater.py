@@ -37,7 +37,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
             release_id = json.loads(query['data'])['song_id']
 
             songs = spotipy_client.get_album_songs(release_id)
-            songs_ids.extend(songs)  # make it set to ensure unique releases only
+            songs_ids.extend(songs)
 
             last_update_id = update['update_id'] + 1
 
@@ -47,6 +47,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
             print("No songs to add to playlist")
             exit()
 
+        songs_ids = set(songs_ids)
         spotipy_client.add_song_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)
         telegram_client.send_message_with_image(
             text=f'Playlist was updated with {len(songs_ids)} new songs!',
