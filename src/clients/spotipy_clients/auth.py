@@ -1,5 +1,6 @@
 import os
 
+
 class AuthSpotipyClient:
     def __init__(self, spotipy_client):
         self.client = spotipy_client

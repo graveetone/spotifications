@@ -19,7 +19,7 @@ def get_updates(offset=None):
 
 
 def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClient):
-    songs_ids = []
+    songs_ids = set()
     last_update_id = None
 
     updates = get_updates(last_update_id)
@@ -36,20 +36,24 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
             print(f"Found update with callback query: {query['data']}")
             release_id = json.loads(query['data'])['song_id']
 
-            songs = spotipy_client.get_album_songs(release_id)
-            # skip songs that do not have favorite artists among all artists
-            songs_ids.extend(songs)
+            songs = spotipy_client.get.get_album_songs(release_id)
+            songs_ids.update(songs)
 
             last_update_id = update['update_id'] + 1
 
         # clear updates
         get_updates(last_update_id)
+
+        songs_ids = {
+            song for song in songs
+            if spotipy_client.get.favorite_artist_song(song)
+        }
+
         if not songs_ids:
             print("No songs to add to playlist")
             exit()
 
-        songs_ids = set(songs_ids)
-        spotipy_client.add_song_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)
+        spotipy_client.post.add_song_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)
         telegram_client.send_message_with_image(
             text=f'Playlist was updated with {len(songs_ids)} new songs!',
             image_url=PLAYLIST_UPDATED_IMAGE,

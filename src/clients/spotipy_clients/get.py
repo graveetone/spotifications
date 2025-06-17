@@ -28,7 +28,6 @@ class GetSpotipyClient:
 
         return artist_releases
 
-
     def get_artists_ids(self):
         """Get ids of artists that user follows """
 
@@ -53,10 +52,15 @@ class GetSpotipyClient:
         album_songs = self.client.album_tracks(album_id)['items']
         return [song['uri'] for song in album_songs]
 
+    def favorite_artist_song(self, song_id: str) -> bool:
+        song = self.client.track(song_id)
+        artists_ids = [artist['id'] for artist in song['artists']]
+
+        return any(self.client.current_user_following_artists(artists_ids))
+
     def _get_artists_ids(self, after=None) -> tuple:
         artists = self.client.current_user_followed_artists(after=after)['artists']
         return [item['id'] for item in artists['items']], artists['next']
-
 
     def _get_artist_releases(self, artist_id: str, newer_than: Optional[datetime], offset=None,):
         if newer_than is None:

@@ -24,13 +24,13 @@ def get_last_crawling_date():
 
 def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
     print("Retrieving artists ids")
-    artists_ids = client.get_artists_ids()
+    artists_ids = client.get.get_artists_ids()
 
     print(f"Crawling releases newer than {newer_than}")
 
     new_releases = []
     for i, aid in enumerate(artists_ids, start=1):
-        releases = set(client.get_artist_releases(artist_id=aid, newer_than=newer_than))
+        releases = set(client.get.get_artist_releases(artist_id=aid, newer_than=newer_than))
 
         if releases:
             new_releases.extend(releases)

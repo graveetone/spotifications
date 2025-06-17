@@ -44,5 +44,5 @@ jobs:
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
           git add .last_crawling_date
-          git commit -m "Update last crawling date"
+          git commit -m "[GHA] Update last crawling date"
           git push
