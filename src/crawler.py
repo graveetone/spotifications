@@ -30,7 +30,7 @@ def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
 
     new_releases = []
     for i, aid in enumerate(artists_ids, start=1):
-        releases = client.get_artist_releases(artist_id=aid, newer_than=newer_than)
+        releases = set(client.get_artist_releases(artist_id=aid, newer_than=newer_than))
 
         if releases:
             new_releases.extend(releases)
