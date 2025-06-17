@@ -37,6 +37,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
             release_id = json.loads(query['data'])['song_id']
 
             songs = spotipy_client.get_album_songs(release_id)
+            # skip songs that do not have favorite artists among all artists
             songs_ids.extend(songs)
 
             last_update_id = update['update_id'] + 1
@@ -59,8 +60,12 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
     print('Updates processed successfully')
 
 
-if __name__ == "__main__":
+def main():
     spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
     telegram_client = TelegramClient(chat_id=TELEGRAM_CHAT_ID, token=os.environ['TELEGRAM_BOT_TOKEN'])
 
     process_updates(spotipy_client=spotipy_client, telegram_client=telegram_client)
+
+
+if __name__ == "__main__":
+    main()

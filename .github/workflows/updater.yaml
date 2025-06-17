@@ -3,7 +3,7 @@ name: 🆕 Updates playlist with chosen releases
 on:
   workflow_dispatch:
   schedule:
-    - cron: '36 15/2 * * *'
+    - cron: '36 */3 * * *'
 
 jobs:
   update-playlist:
@@ -32,7 +32,7 @@ jobs:
       - name: Update playlist with saved releases
         run: |
           source .venv/bin/activate
-          python src/playlist_updater.py
+          python src/updater.py
         env:
           SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
           SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
