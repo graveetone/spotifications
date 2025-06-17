@@ -1,6 +1,12 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List, Tuple
+from pathlib import Path
 import os
+import sys
+
+sys.path.append(str(Path(__file__).resolve().parents[3]))
+
+from src.models import Release
 
 DEFAULT_RELEASES_GROUPS = ",".join(("album", "single", "compilation", "appears_on"))
 VARIOUS_ARTISTS = "Various Artists"
@@ -19,6 +25,7 @@ class GetSpotipyClient:
             artist_releases.extend(releases)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
+                artist_releases = artist_releases[0:1]
                 break
 
             if total <= offset:
@@ -38,6 +45,7 @@ class GetSpotipyClient:
             followed_artists_ids.extend(ids)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
+                followed_artists_ids = followed_artists_ids[0:1]
                 break
 
             if not has_next:
@@ -62,7 +70,9 @@ class GetSpotipyClient:
         artists = self.client.current_user_followed_artists(after=after)['artists']
         return [item['id'] for item in artists['items']], artists['next']
 
-    def _get_artist_releases(self, artist_id: str, newer_than: Optional[datetime], offset=None,):
+    def _get_artist_releases(
+            self, artist_id: str, newer_than: Optional[datetime], offset=None
+    ) -> Tuple[List[Release], str, str]:
         if newer_than is None:
             newer_than = datetime.now()
 
@@ -71,37 +81,14 @@ class GetSpotipyClient:
         )
 
         return [
-            self.parse_release_info(release)
+            Release.from_spotipy(release)
             for release in response["items"]
             if not self.skip_release(release, newer_than)
         ], response['limit'], response['total']
 
     @staticmethod
-    def _parse_release_date(date: str) -> datetime:
-        if len(date) == 4:
-            date += "-01-01"
-
-        return datetime.fromisoformat(date)
-
-    @staticmethod
     def skip_release(release, newer_than) -> bool:
         return any((
             VARIOUS_ARTISTS in {artists['name'] for artists in release['artists']},
-            GetSpotipyClient._parse_release_date(release['release_date']) <= newer_than,
+            Release.parse_release_date(release['release_date']) <= newer_than,
         ))
-
-    @staticmethod
-    def parse_release_info(release: dict):
-        release_date = GetSpotipyClient._parse_release_date(release['release_date'])
-        artists = ", ".join(artist['name'] for artist in release['artists'])
-        release_info = {
-            "name": release["name"],
-            "release_date": release_date.strftime("%d.%m.%Y"),
-            "artists": artists,
-            "url": release["external_urls"]["spotify"],
-            "song_id": release["uri"]
-        }
-        if images := release.get('images', []):
-            release_info['cover_url'] = images[0]['url']
-
-        return release_info

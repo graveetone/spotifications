@@ -2,12 +2,12 @@ import datetime
 import os
 import json
 from dotenv import load_dotenv
-from proxy import get_spotify_proxy
 
+from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
-
 from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID
+from models import NotificationKeyboardButton, Release
 
 load_dotenv()
 
@@ -44,23 +44,23 @@ def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime)
         text=f'No new releases from {crawling_date.strftime("%d.%m.%Y")}',
         image_url=NO_UPDATES_IMAGE,
         keyboard=telegram_client.compose_keyboard(
-            dict(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check ListenToMe playlist!")
+            NotificationKeyboardButton(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check ListenToMe playlist!").model_dump()
         )
     )
 
 
-def send_release_notification(telegram_client: TelegramClient, release: dict):
+def send_release_notification(telegram_client: TelegramClient, release: Release):
     telegram_client.send_message_with_image(
         text=NOTITICATION_PATTERN.format(
-            artists=release['artists'],
-            release_date=release['release_date'],
-            release_name=release["name"],
-            release_link=release['url'],
+            artists=release.artists,
+            release_date=release.release_date,
+            release_name=release.name,
+            release_link=release.url
         ),
-        image_url=release['cover_url'],
+        image_url=release.cover_url,
         keyboard=telegram_client.compose_keyboard(
-            dict(url=release['url'], text=release['name']),
-            dict(text="➕", callback_data=json.dumps({"song_id": release["song_id"]}))
+            NotificationKeyboardButton(url=release.url, text=release.name).model_dump(exclude_none=True),
+            NotificationKeyboardButton(text="➕", callback_data=json.dumps({"song_id": release.uri})).model_dump(exclude_none=True)
         )
     )
 

@@ -7,6 +7,7 @@ from proxy import get_spotify_proxy
 from constants import TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
+from models import NotificationKeyboardButton
 
 load_dotenv()
 
@@ -58,7 +59,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
             text=f'Playlist was updated with {len(songs_ids)} new songs!',
             image_url=PLAYLIST_UPDATED_IMAGE,
             keyboard=telegram_client.compose_keyboard(
-                dict(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check updates!")
+                NotificationKeyboardButton(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check updates!").model_dump()
             )
         )
     print('Updates processed successfully')
