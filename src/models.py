@@ -15,7 +15,7 @@ class Release(BaseModel):
     @classmethod
     def from_spotipy(cls, release: dict) -> "Release":
         release_date = cls.parse_release_date(release['release_date'])
-        artists = ", ".join(artist['name'] for artist in release['artists'])
+        artists = ", ".join(artist['name'] for artist in release.get('artists', []))
 
         release_object = cls(
             name=release["name"],
@@ -29,8 +29,6 @@ class Release(BaseModel):
             release_object.cover_url = images[0]['url']
 
         return release_object
-    
-    
 
     @staticmethod
     def parse_release_date(date: str) -> datetime:

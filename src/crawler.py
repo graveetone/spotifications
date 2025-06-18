@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
-from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID
+from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID, EPISODE_PATTERN
 from models import NotificationKeyboardButton, Release
 
 load_dotenv()
@@ -39,6 +39,23 @@ def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
     return new_releases
 
 
+def get_shows_latest_episodes(client: SpotipyClient, newer_than: datetime):
+    print("Retrieving shows ids")
+    shows_ids = client.get.get_favorite_shows()
+
+    print(f"Crawling episodes newer than {newer_than}")
+
+    new_episodes = []
+    for i, aid in enumerate(shows_ids, start=1):
+        episodes = set(client.get.get_show_episodes(show_id=aid, newer_than=newer_than))
+
+        if episodes:
+            new_episodes.extend(episodes)
+        print(f"Processed {i}/{len(shows_ids)}")
+
+    return new_episodes
+
+
 def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime):
     telegram_client.send_message_with_image(
         text=f'No new releases from {crawling_date.strftime("%d.%m.%Y")}',
@@ -50,13 +67,21 @@ def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime)
 
 
 def send_release_notification(telegram_client: TelegramClient, release: Release):
-    telegram_client.send_message_with_image(
-        text=NOTITICATION_PATTERN.format(
-            artists=release.artists,
+    text = NOTITICATION_PATTERN.format(
+        artists=release.artists,
+        release_date=release.release_date,
+        release_name=release.name,
+        release_link=release.url
+    ) if release.artists else (
+        EPISODE_PATTERN.format(
             release_date=release.release_date,
             release_name=release.name,
             release_link=release.url
-        ),
+        )
+    )
+
+    telegram_client.send_message_with_image(
+        text=text,
         image_url=release.cover_url,
         keyboard=telegram_client.compose_keyboard(
             NotificationKeyboardButton(url=release.url, text=release.name).model_dump(exclude_none=True),
@@ -76,10 +101,15 @@ def main():
         newer_than=last_crawling_date,
     )
 
-    if not new_releases:
+    new_episodes = get_shows_latest_episodes(
+        client=spotipy_client,
+        newer_than=last_crawling_date,
+    )
+
+    if not new_releases and not new_episodes:
         notify_no_releases(telegram_client=telegram_client, crawling_date=last_crawling_date)
     else:
-        for release in new_releases:
+        for release in [*new_releases, *new_episodes]:
             send_release_notification(telegram_client=telegram_client, release=release)
 
     update_last_crawling_date(datetime.datetime.now())

@@ -34,6 +34,24 @@ class GetSpotipyClient:
 
         return artist_releases
 
+    def get_show_episodes(self, show_id: str, newer_than: Optional[datetime]):
+        """Get specific show's episodes newer than provided date"""
+        show_episodes = []
+        offset = 0
+        while True:
+            episodes, limit, total = self._get_show_episodes(show_id, newer_than, offset)
+            show_episodes.extend(episodes)
+
+            if os.environ.get('SPOTIFICATIONS_DEBUG'):
+                break
+
+            if total <= offset:
+                break
+
+            offset += limit
+
+        return show_episodes
+
     def get_artists_ids(self):
         """Get ids of artists that user follows """
 
@@ -52,6 +70,24 @@ class GetSpotipyClient:
             after = ids[-1]
 
         return followed_artists_ids
+
+    def get_favorite_shows(self):
+        """Get ids of shows that user saved"""
+        saved_shows_ids = []
+        offset = 0
+        while True:
+            ids, limit, total = self._get_favorite_shows(offset)
+            saved_shows_ids.extend(ids)
+
+            if os.environ.get('SPOTIFICATIONS_DEBUG'):
+                break
+
+            if total <= offset:
+                break
+
+            offset += limit
+
+        return saved_shows_ids
 
     def get_album_songs(self, album_id: str):
         """Get songs from specific album"""
@@ -84,9 +120,35 @@ class GetSpotipyClient:
             if not self.skip_release(release, newer_than)
         ], response['limit'], response['total']
 
+    def _get_favorite_shows(self, offset=None) -> tuple:
+        shows = self.client.current_user_saved_shows(offset=offset)
+        return [item['show']['id'] for item in shows['items']], shows['limit'], shows['total']
+
+    def _get_show_episodes(
+            self, show_id: str, newer_than: Optional[datetime], offset=None
+    ) -> Tuple[List[Release], str, str]:
+        if newer_than is None:
+            newer_than = datetime.now()
+
+        response = self.client.show_episodes(
+            show_id=show_id, offset=offset,
+        )
+
+        return [
+            Release.from_spotipy(episode)
+            for episode in response["items"]
+            if not self.skip_episode(episode, newer_than)
+        ], response['limit'], response['total']
+
     @staticmethod
     def skip_release(release, newer_than) -> bool:
         return any((
             VARIOUS_ARTISTS in {artists['name'] for artists in release['artists']},
             Release.parse_release_date(release['release_date']) <= newer_than,
+        ))
+
+    @staticmethod
+    def skip_episode(episode, newer_than) -> bool:
+        return any((
+            Release.parse_release_date(episode['release_date']) <= newer_than,
         ))
