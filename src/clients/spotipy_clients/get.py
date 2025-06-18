@@ -25,7 +25,6 @@ class GetSpotipyClient:
             artist_releases.extend(releases)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
-                artist_releases = artist_releases[0:1]
                 break
 
             if total <= offset:
@@ -45,7 +44,6 @@ class GetSpotipyClient:
             followed_artists_ids.extend(ids)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
-                followed_artists_ids = followed_artists_ids[0:1]
                 break
 
             if not has_next:
