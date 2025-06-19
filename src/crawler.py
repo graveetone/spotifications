@@ -8,6 +8,8 @@ from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID, EPISODE_PATTERN
 from models import NotificationKeyboardButton, Release
+from loguru import logger
+
 
 load_dotenv()
 
@@ -23,10 +25,10 @@ def get_last_crawling_date():
 
 
 def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
-    print("Retrieving artists ids")
+    logger.debug("Retrieving artists ids")
     artists_ids = client.get.get_artists_ids()
 
-    print(f"Crawling releases newer than {newer_than}")
+    logger.debug(f"Crawling releases newer than {newer_than}")
 
     new_releases = []
     for i, aid in enumerate(artists_ids, start=1):
@@ -34,16 +36,16 @@ def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
 
         if releases:
             new_releases.extend(releases)
-        print(f"Processed {i}/{len(artists_ids)}")
+        logger.info(f"Processed {i}/{len(artists_ids)}")
 
     return new_releases
 
 
 def get_shows_latest_episodes(client: SpotipyClient, newer_than: datetime):
-    print("Retrieving shows ids")
+    logger.debug("Retrieving shows ids")
     shows_ids = client.get.get_favorite_shows()
 
-    print(f"Crawling episodes newer than {newer_than}")
+    logger.debug(f"Crawling episodes newer than {newer_than}")
 
     new_episodes = []
     for i, aid in enumerate(shows_ids, start=1):
@@ -51,7 +53,7 @@ def get_shows_latest_episodes(client: SpotipyClient, newer_than: datetime):
 
         if episodes:
             new_episodes.extend(episodes)
-        print(f"Processed {i}/{len(shows_ids)}")
+        logger.info(f"Processed {i}/{len(shows_ids)}")
 
     return new_episodes
 
@@ -112,7 +114,9 @@ def main():
         for release in [*new_releases, *new_episodes]:
             send_release_notification(telegram_client=telegram_client, release=release)
 
-    update_last_crawling_date(datetime.datetime.now())
+    now = datetime.datetime.now()
+    update_last_crawling_date(now)
+    logger.success(f"Crawling finished. Last crawling date set to: {now}")
 
 
 if __name__ == "__main__":

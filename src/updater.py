@@ -8,6 +8,8 @@ from constants import TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_P
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 from models import NotificationKeyboardButton
+from loguru import logger
+
 
 load_dotenv()
 
@@ -26,16 +28,16 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
 
     updates = get_updates(last_update_id)
     if not updates.get("result"):
-        print('No updates for Telegram bot')
+        logger.info('No updates for Telegram bot')
     else:
         for update in updates['result']:
             query = update.get('callback_query')
 
             if query is None:
-                print('Skipping updates with no callback query')
+                logger.warning('Skipping updates with no callback query')
                 continue
 
-            print(f"Found update with callback query: {query['data']}")
+            logger.info(f"Found update with callback query: {query['data']}")
             release_id = json.loads(query['data'])['song_id']
 
             if "episode" in release_id:
@@ -56,7 +58,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
         songs_ids.update(episodes_ids)
 
         if not songs_ids:
-            print("No songs or episodes to add to playlist")
+            logger.info("No songs or episodes to add to playlist")
             exit()
 
         spotipy_client.post.add_songs_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)
@@ -67,7 +69,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
                 NotificationKeyboardButton(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check updates!").model_dump()
             )
         )
-    print('Updates processed successfully')
+    logger.success('Updates processed successfully')
 
 
 def main():

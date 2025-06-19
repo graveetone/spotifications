@@ -3,7 +3,7 @@ from typing import Optional, List, Tuple
 from pathlib import Path
 import os
 import sys
-
+from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
 from src.models import Release
@@ -22,6 +22,7 @@ class GetSpotipyClient:
         offset = 0
         while True:
             releases, limit, total = self._get_artist_releases(artist_id, newer_than, offset)
+            logger.debug(f"Get artist {artist_id} releases. Newer than: {newer_than}. Offset: {offset}")
             artist_releases.extend(releases)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
@@ -40,6 +41,7 @@ class GetSpotipyClient:
         offset = 0
         while True:
             episodes, limit, total = self._get_show_episodes(show_id, newer_than, offset)
+            logger.debug(f"Get episodes for {show_id} show. Newer than: {newer_than}. Offset: {offset}")
             show_episodes.extend(episodes)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
@@ -59,6 +61,7 @@ class GetSpotipyClient:
         after = None
         while True:
             ids, has_next = self._get_artists_ids(after=after)
+            logger.debug(f"Get artists ids")
             followed_artists_ids.extend(ids)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
@@ -77,6 +80,7 @@ class GetSpotipyClient:
         offset = 0
         while True:
             ids, limit, total = self._get_favorite_shows(offset)
+            logger.debug(f"Get favorite shows. Offset: {offset}")
             saved_shows_ids.extend(ids)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
@@ -92,12 +96,13 @@ class GetSpotipyClient:
     def get_album_songs(self, album_id: str):
         """Get songs from specific album"""
         album_songs = self.client.album_tracks(album_id)['items']
+        logger.debug(f"Get songs of album {album_id}")
         return [song['uri'] for song in album_songs]
 
     def favorite_artist_song(self, song_id: str) -> bool:
         song = self.client.track(song_id)
         artists_ids = [artist['id'] for artist in song['artists']]
-
+        logger.debug(f"Check song {song_id} is from favorite artist")
         return any(self.client.current_user_following_artists(artists_ids))
 
     def _get_artists_ids(self, after=None) -> tuple:

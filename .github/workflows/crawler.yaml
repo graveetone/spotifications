@@ -46,3 +46,9 @@ jobs:
           git add .last_crawling_date
           git commit -m "[GHA] Update last crawling date"
           git push
+
+      - name: Upload crawler logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler_logs
+          path: logs/

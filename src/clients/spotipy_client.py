@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from .spotipy_clients import AuthSpotipyClient, GetSpotipyClient, PostSpotipyClient
+from loguru import logger
 
 
 class SpotipyClient:
@@ -12,3 +13,5 @@ class SpotipyClient:
         self.post = PostSpotipyClient(self.client)
 
         self.auth.refresh_token()
+
+        logger.success("Initialized new Spotipy client")
