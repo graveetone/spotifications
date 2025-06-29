@@ -114,7 +114,7 @@ def main():
         for release in [*new_releases, *new_episodes]:
             send_release_notification(telegram_client=telegram_client, release=release)
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now().date()
     update_last_crawling_date(now)
     logger.success(f"Crawling finished. Last crawling date set to: {now}")
 
