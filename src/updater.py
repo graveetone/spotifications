@@ -32,6 +32,7 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
     else:
         for update in updates['result']:
             query = update.get('callback_query')
+            last_update_id = update['update_id'] + 1
 
             if query is None:
                 logger.warning('Skipping updates with no callback query')
@@ -45,8 +46,6 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
             else:
                 songs = spotipy_client.get.get_album_songs(release_id)
                 songs_ids.update(songs)
-
-            last_update_id = update['update_id'] + 1
 
         # clear updates
         get_updates(last_update_id)
