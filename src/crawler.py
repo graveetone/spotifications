@@ -6,12 +6,22 @@ from dotenv import load_dotenv
 from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
-from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID, EPISODE_PATTERN
+from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID, \
+    EPISODE_PATTERN
 from models import NotificationKeyboardButton, Release
 from loguru import logger
 
-
 load_dotenv()
+
+
+def get_processed_releases_uris():
+    with open(".processed_releases_uris") as file:
+        return json.load(fp=file)["uris"]
+
+
+def save_processed_releases_uris(uris):
+    with open(".processed_releases_uris") as file:
+        return json.dump({"uris": uris}, fp=file)
 
 
 def update_last_crawling_date(last_crawling_date):
@@ -87,7 +97,8 @@ def send_release_notification(telegram_client: TelegramClient, release: Release)
         image_url=release.cover_url,
         keyboard=telegram_client.compose_keyboard(
             NotificationKeyboardButton(url=release.url, text=release.name).model_dump(exclude_none=True),
-            NotificationKeyboardButton(text="➕", callback_data=json.dumps({"song_id": release.uri})).model_dump(exclude_none=True)
+            NotificationKeyboardButton(text="➕", callback_data=json.dumps({"song_id": release.uri})).model_dump(
+                exclude_none=True)
         )
     )
 
@@ -97,6 +108,7 @@ def main():
     telegram_client = TelegramClient(chat_id=TELEGRAM_CHAT_ID, token=os.environ['TELEGRAM_BOT_TOKEN'])
 
     last_crawling_date = get_last_crawling_date()
+    processed_releases_uris = get_processed_releases_uris()
 
     new_releases = get_artists_latest_releases(
         client=spotipy_client,
@@ -107,15 +119,28 @@ def main():
         client=spotipy_client,
         newer_than=last_crawling_date,
     )
+    releases_to_notify = [
+        *[
+            release for release in new_releases
+            if release.uri not in processed_releases_uris
+        ],
+        *[
+            episode for episode in new_episodes
+            if episode.uri not in processed_releases_uris
+        ]
+    ]
 
-    if not new_releases and not new_episodes:
+    if not releases_to_notify:
         notify_no_releases(telegram_client=telegram_client, crawling_date=last_crawling_date)
     else:
-        for release in [*new_releases, *new_episodes]:
+        for release in releases_to_notify:
             send_release_notification(telegram_client=telegram_client, release=release)
 
     now = datetime.datetime.now().date()
     update_last_crawling_date(now)
+
+    save_processed_releases_uris([release.uri for release in releases_to_notify])
+
     logger.success(f"Crawling finished. Last crawling date set to: {now}")
 
 

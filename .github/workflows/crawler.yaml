@@ -39,11 +39,11 @@ jobs:
           SPOTIFY_REFRESH_TOKEN: ${{ secrets.SPOTIFY_REFRESH_TOKEN }}
           TELEGRAM_BOT_TOKEN:  ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-      - name: Save .last_crawling_date file
+      - name: Save .last_crawling_date and .processed_releases_uris files
         run: |
           git config --global user.email "action@github.com"
           git config --global user.name "GitHub Action"
-          git add .last_crawling_date
+          git add .last_crawling_date .processed_releases_uris
           git commit -m "[GHA] Update last crawling date" --allow-empty
           git push
 
