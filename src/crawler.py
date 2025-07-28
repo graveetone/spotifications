@@ -20,7 +20,7 @@ def get_processed_releases_uris():
 
 
 def save_processed_releases_uris(uris):
-    with open(".processed_releases_uris") as file:
+    with open(".processed_releases_uris", "w") as file:
         return json.dump({"uris": uris}, fp=file)
 
 
