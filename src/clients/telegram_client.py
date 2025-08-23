@@ -1,8 +1,6 @@
 import requests
-import os
 import json
 import pprint
-from enum import Enum
 from loguru import logger
 from typing import Optional
 
@@ -31,7 +29,9 @@ class TelegramClient:
             url=self.send_photo_endpoint,
             data=data,
         )
-        logger.success(f"[TELEGRAM_NOTIFIER] {response.status_code} {pprint.pformat(response.json())}")
+        logger.success(
+            f"[TELEGRAM_NOTIFIER] {response.status_code} {pprint.pformat(response.json())}"
+        )
 
     @property
     def send_photo_endpoint(self):

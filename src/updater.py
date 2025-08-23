@@ -12,7 +12,6 @@ from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 from models import NotificationKeyboardButton
 from loguru import logger
-import pprint
 
 load_dotenv()
 
@@ -21,7 +20,10 @@ BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
 
 def get_updates(offset=None):
     logger.debug(f"Get updates with offset: {offset}")
-    resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates", params={"offset": offset})
+    resp = requests.get(
+        url=f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates",
+        params={"offset": offset},
+    )
     logger.debug(f"Response from tg api: {resp.json()}")
 
     return resp.json()
@@ -71,17 +73,23 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
         if not songs_ids:
             logger.info("No songs or episodes to add to playlist")
             telegram_client.send_message_with_image(
-                text=f'No songs or episodes to add to playlist [{os.getenv("GITHUB_WORKFLOW_REF")}]',
+                text=f'No songs or episodes to add to playlist [{os.getenv("GITHUB_WORKFLOW_REF")}]',  # noqa: E501
                 image_url=NO_TG_BOT_UPDATES_IMAGE,
             )
             exit()
 
-        spotipy_client.post.add_songs_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)
+        spotipy_client.post.add_songs_to_playlist(
+            playlist_id=SPOTIFICATIONS_PLAYLIST_ID,
+            songs_ids=songs_ids,
+        )
         telegram_client.send_message_with_image(
             text=f'Playlist was updated with {len(songs_ids)} new item(s)!',
             image_url=PLAYLIST_UPDATED_IMAGE,
             keyboard=telegram_client.compose_keyboard(
-                NotificationKeyboardButton(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check updates!").model_dump()
+                NotificationKeyboardButton(
+                    url=SPOTIFICATIONS_PLAYLIST_LINK,
+                    text="Check updates!",
+                ).model_dump()
             )
         )
     logger.success('Updates processed successfully')
@@ -89,7 +97,10 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
 
 def main():
     spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
-    telegram_client = TelegramClient(chat_id=TELEGRAM_CHAT_ID, token=os.environ['TELEGRAM_BOT_TOKEN'])
+    telegram_client = TelegramClient(
+        chat_id=TELEGRAM_CHAT_ID,
+        token=os.environ['TELEGRAM_BOT_TOKEN'],
+    )
 
     process_updates(spotipy_client=spotipy_client, telegram_client=telegram_client)
 

@@ -1,5 +1,3 @@
-from datetime import datetime
-from typing import Optional
 from .spotipy_clients import AuthSpotipyClient, GetSpotipyClient, PostSpotipyClient
 from loguru import logger
 

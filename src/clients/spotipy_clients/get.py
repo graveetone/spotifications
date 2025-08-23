@@ -6,7 +6,7 @@ import sys
 from loguru import logger
 sys.path.append(str(Path(__file__).resolve().parents[3]))
 
-from src.models import Release
+from src.models import Release  # noqa: E402
 
 DEFAULT_RELEASES_GROUPS = ",".join(("album", "single", "compilation", "appears_on"))
 VARIOUS_ARTISTS = "Various Artists"
@@ -22,7 +22,9 @@ class GetSpotipyClient:
         offset = 0
         while True:
             releases, limit, total = self._get_artist_releases(artist_id, newer_than, offset)
-            logger.debug(f"Get artist {artist_id} releases. Newer than: {newer_than}. Offset: {offset}")
+            logger.debug(
+                f"Get artist {artist_id} releases. Newer than: {newer_than}. Offset: {offset}"
+            )
             artist_releases.extend(releases)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
@@ -41,7 +43,9 @@ class GetSpotipyClient:
         offset = 0
         while True:
             episodes, limit, total = self._get_show_episodes(show_id, newer_than, offset)
-            logger.debug(f"Get episodes for {show_id} show. Newer than: {newer_than}. Offset: {offset}")
+            logger.debug(
+                f"Get episodes for {show_id} show. Newer than: {newer_than}. Offset: {offset}"
+            )
             show_episodes.extend(episodes)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):
@@ -61,7 +65,7 @@ class GetSpotipyClient:
         after = None
         while True:
             ids, has_next = self._get_artists_ids(after=after)
-            logger.debug(f"Get artists ids")
+            logger.debug("Get artists ids")
             followed_artists_ids.extend(ids)
 
             if os.environ.get('SPOTIFICATIONS_DEBUG'):

@@ -6,8 +6,10 @@ from dotenv import load_dotenv
 from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
-from constants import NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, TELEGRAM_CHAT_ID, \
-    EPISODE_PATTERN
+from constants import (
+    NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK,
+    TELEGRAM_CHAT_ID, EPISODE_PATTERN,
+)
 from models import NotificationKeyboardButton, Release
 from loguru import logger
 
@@ -73,7 +75,10 @@ def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime)
         text=f'No new releases from {crawling_date.strftime("%d.%m.%Y")}',
         image_url=NO_UPDATES_IMAGE,
         keyboard=telegram_client.compose_keyboard(
-            NotificationKeyboardButton(url=SPOTIFICATIONS_PLAYLIST_LINK, text="Check ListenToMe playlist!").model_dump()
+            NotificationKeyboardButton(
+                url=SPOTIFICATIONS_PLAYLIST_LINK,
+                text="Check ListenToMe playlist!",
+            ).model_dump()
         )
     )
 
@@ -96,16 +101,24 @@ def send_release_notification(telegram_client: TelegramClient, release: Release)
         text=text,
         image_url=release.cover_url,
         keyboard=telegram_client.compose_keyboard(
-            NotificationKeyboardButton(url=release.url, text=release.name).model_dump(exclude_none=True),
-            NotificationKeyboardButton(text="➕", callback_data=json.dumps({"song_id": release.uri})).model_dump(
-                exclude_none=True)
+            NotificationKeyboardButton(
+                url=release.url,
+                text=release.name,
+            ).model_dump(exclude_none=True),
+            NotificationKeyboardButton(
+                text="➕",
+                callback_data=json.dumps({"song_id": release.uri}),
+            ).model_dump(exclude_none=True)
         )
     )
 
 
 def main():
     spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
-    telegram_client = TelegramClient(chat_id=TELEGRAM_CHAT_ID, token=os.environ['TELEGRAM_BOT_TOKEN'])
+    telegram_client = TelegramClient(
+        chat_id=TELEGRAM_CHAT_ID,
+        token=os.environ['TELEGRAM_BOT_TOKEN'],
+    )
 
     last_crawling_date = get_last_crawling_date()
     processed_releases_uris = get_processed_releases_uris()
