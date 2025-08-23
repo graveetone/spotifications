@@ -48,7 +48,7 @@ def get_artists_latest_releases(client: SpotipyClient, newer_than: datetime):
             new_releases.extend(releases)
         logger.info(f"Processed {i}/{len(artists_ids)}")
 
-    return new_releases
+    return set(new_releases)
 
 
 def get_shows_latest_episodes(client: SpotipyClient, newer_than: datetime):
@@ -65,7 +65,7 @@ def get_shows_latest_episodes(client: SpotipyClient, newer_than: datetime):
             new_episodes.extend(episodes)
         logger.info(f"Processed {i}/{len(shows_ids)}")
 
-    return new_episodes
+    return set(new_episodes)
 
 
 def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime):
