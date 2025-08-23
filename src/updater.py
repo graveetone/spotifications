@@ -4,12 +4,15 @@ import os
 from dotenv import load_dotenv
 
 from proxy import get_spotify_proxy
-from constants import TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
+from constants import (
+    TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK,
+    SPOTIFICATIONS_PLAYLIST_ID, NO_TG_BOT_UPDATES_IMAGE,
+)
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 from models import NotificationKeyboardButton
 from loguru import logger
-
+import pprint
 
 load_dotenv()
 
@@ -17,7 +20,10 @@ BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
 
 
 def get_updates(offset=None):
+    logger.debug(f"Get updates with offset: {offset}")
     resp = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getUpdates", params={"offset": offset})
+    logger.debug(f"Response from tg api: {resp.json()}")
+
     return resp.json()
 
 
@@ -27,8 +33,14 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
     last_update_id = None
 
     updates = get_updates(last_update_id)
+    logger.debug(f"Got updates: {updates}")
+
     if not updates.get("result"):
         logger.info('No updates for Telegram bot')
+        telegram_client.send_message_with_image(
+            text=f'No updates found [{os.getenv("GITHUB_WORKFLOW_REF")}]',
+            image_url=NO_TG_BOT_UPDATES_IMAGE,
+        )
     else:
         for update in updates['result']:
             query = update.get('callback_query')
@@ -58,6 +70,10 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
 
         if not songs_ids:
             logger.info("No songs or episodes to add to playlist")
+            telegram_client.send_message_with_image(
+                text=f'No songs or episodes to add to playlist [{os.getenv("GITHUB_WORKFLOW_REF")}]',
+                image_url=NO_TG_BOT_UPDATES_IMAGE,
+            )
             exit()
 
         spotipy_client.post.add_songs_to_playlist(playlist_id=SPOTIFICATIONS_PLAYLIST_ID, songs_ids=songs_ids)

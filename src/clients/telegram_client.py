@@ -1,9 +1,10 @@
 import requests
 import os
 import json
+import pprint
 from enum import Enum
-from pprint import pprint
 from loguru import logger
+from typing import Optional
 
 
 class TelegramClient:
@@ -11,21 +12,26 @@ class TelegramClient:
         self.chat_id = chat_id
         self.token = token
 
-    def send_message_with_image(self, text: str, image_url: str, keyboard: list):
+    def send_message_with_image(self, text: str, image_url: str, keyboard: Optional[list] = None):
         logger.debug("Sending telegram notification")
-        response = requests.post(
-            url=self.send_photo_endpoint,
-            data={
-                'chat_id': self.chat_id,
-                'photo': image_url,
-                'caption': text,
-                'parse_mode': 'HTML',
+        data = {
+            'chat_id': self.chat_id,
+            'photo': image_url,
+            'caption': text,
+            'parse_mode': 'HTML',
+        }
+
+        if keyboard is not None:
+            data.update({
                 'reply_markup': json.dumps({
                     'inline_keyboard': keyboard
                 })
-            }
+            })
+        response = requests.post(
+            url=self.send_photo_endpoint,
+            data=data,
         )
-        logger.debug(f"[TELEGRAM_NOTIFIER] {response.status_code}")
+        logger.success(f"[TELEGRAM_NOTIFIER] {response.status_code} {pprint.pformat(response.json())}")
 
     @property
     def send_photo_endpoint(self):
