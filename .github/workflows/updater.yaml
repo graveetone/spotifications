@@ -3,7 +3,8 @@ name: 🆕 Updates playlist with chosen releases
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 4-20/1 * * *'
+    : # At minute 30 past every 2nd hour from 4 through 20 by Kyiv/Europe
+    - cron: '30 1-17/2 * * *'
 
 jobs:
   update-playlist:
