@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from proxy import get_spotify_proxy
 from constants import (
     TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK,
-    SPOTIFICATIONS_PLAYLIST_ID, NO_TG_BOT_UPDATES_IMAGE,
+    SPOTIFICATIONS_PLAYLIST_ID,
 )
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
@@ -39,10 +39,6 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
 
     if not updates.get("result"):
         logger.info('No updates for Telegram bot')
-        telegram_client.send_message_with_image(
-            text=f'No updates found [{os.getenv("GITHUB_WORKFLOW_REF")}]',
-            image_url=NO_TG_BOT_UPDATES_IMAGE,
-        )
     else:
         for update in updates['result']:
             query = update.get('callback_query')
@@ -72,10 +68,6 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
 
         if not songs_ids:
             logger.info("No songs or episodes to add to playlist")
-            telegram_client.send_message_with_image(
-                text=f'No songs or episodes to add to playlist [{os.getenv("GITHUB_WORKFLOW_REF")}]',  # noqa: E501
-                image_url=NO_TG_BOT_UPDATES_IMAGE,
-            )
             exit()
 
         spotipy_client.post.add_songs_to_playlist(
