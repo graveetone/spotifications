@@ -6,16 +6,19 @@ from dotenv import load_dotenv
 from proxy import get_spotify_proxy
 from constants import (
     TELEGRAM_CHAT_ID, PLAYLIST_UPDATED_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK,
-    SPOTIFICATIONS_PLAYLIST_ID,
+    SPOTIFICATIONS_PLAYLIST_ID, WAIT_BEFORE_UPDATES_IMAGE,
 )
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 from models import NotificationKeyboardButton
 from loguru import logger
+import time
+
 
 load_dotenv()
 
 BOT_TOKEN = os.environ['TELEGRAM_BOT_TOKEN']
+WAIT_BEFORE_GETTING_UPDATES_SECONDS = 60
 
 
 def get_updates(offset=None):
@@ -34,6 +37,12 @@ def process_updates(spotipy_client: SpotipyClient, telegram_client: TelegramClie
     episodes_ids = set()
     last_update_id = None
 
+    telegram_client.send_message_with_image(
+        text=f'Updates will be gathered in {WAIT_BEFORE_GETTING_UPDATES_SECONDS} seconds!',
+        image_url=WAIT_BEFORE_UPDATES_IMAGE,
+    )
+    logger.info(f"Waiting {WAIT_BEFORE_GETTING_UPDATES_SECONDS} seconds before getting bot updates")
+    time.sleep(WAIT_BEFORE_GETTING_UPDATES_SECONDS)
     updates = get_updates(last_update_id)
     logger.debug(f"Got updates: {updates}")
 
