@@ -7,7 +7,7 @@ from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 from clients.telegram_client import TelegramClient
 from constants import (
-    NOTITICATION_PATTERN, NO_UPDATES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK,
+    NOTITICATION_PATTERN, NO_NEW_RELEASES_IMAGE, SPOTIFICATIONS_PLAYLIST_LINK,
     TELEGRAM_CHAT_ID, EPISODE_PATTERN,
 )
 from models import NotificationKeyboardButton, Release
@@ -73,7 +73,7 @@ def get_shows_latest_episodes(client: SpotipyClient, newer_than: datetime):
 def notify_no_releases(telegram_client: TelegramClient, crawling_date: datetime):
     telegram_client.send_message_with_image(
         text=f'No new releases from {crawling_date.strftime("%d.%m.%Y")}',
-        image_url=NO_UPDATES_IMAGE,
+        image_url=NO_NEW_RELEASES_IMAGE,
         keyboard=telegram_client.compose_keyboard(
             NotificationKeyboardButton(
                 url=SPOTIFICATIONS_PLAYLIST_LINK,
