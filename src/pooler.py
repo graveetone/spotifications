@@ -5,14 +5,15 @@ from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 import os
 from dotenv import load_dotenv
-from models import Release, NotificationKeyboardButton
+from models import NotificationKeyboardButton
 from clients.telegram_client import TelegramClient
-from constants import SPOTIFICATIONS_PLAYLIST_LINK
-
+from constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
+from loguru import logger
 
 load_dotenv()
 spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
 telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TOKEN'])
+
 
 def add_release_to_playlist(release_id: str, spotipy_client: SpotipyClient):
     songs_to_add_ids = []
@@ -37,6 +38,7 @@ def add_release_to_playlist(release_id: str, spotipy_client: SpotipyClient):
         songs_ids=songs_to_add_ids,
     )
     logger.info(f"Added to playlist: {songs_to_add_ids}")
+
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
