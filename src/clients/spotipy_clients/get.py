@@ -161,3 +161,10 @@ class GetSpotipyClient:
         return any((
             episode is None or Release.parse_release_date(episode['release_date']) < newer_than,
         ))
+
+    def get_release(self, release_uri: str):
+        spotify_function = self.client.album
+        if "episode" in release_uri:
+            spotify_function = self.client.episode
+
+        return Release.from_spotipy(spotify_function(release_uri))

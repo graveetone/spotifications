@@ -106,8 +106,8 @@ def send_release_notification(telegram_client: TelegramClient, release: Release)
                 text=release.name,
             ).model_dump(exclude_none=True),
             NotificationKeyboardButton(
-                text="➕",
-                callback_data=json.dumps({"song_id": release.uri}),
+                text="❤️",
+                callback_data=json.dumps({"release_uri": release.uri}),
             ).model_dump(exclude_none=True)
         )
     )

@@ -5,21 +5,58 @@ from proxy import get_spotify_proxy
 from clients.spotipy_client import SpotipyClient
 import os
 from dotenv import load_dotenv
-from updater import add_release_to_playlist
+from models import Release, NotificationKeyboardButton
+from clients.telegram_client import TelegramClient
+from constants import SPOTIFICATIONS_PLAYLIST_LINK
+
+
 load_dotenv()
 spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
+telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TOKEN'])
 
+def add_release_to_playlist(release_id: str, spotipy_client: SpotipyClient):
+    songs_to_add_ids = []
+
+    if "episode" in release_id:
+        songs_to_add_ids.append(release_id)
+    else:
+        songs_ids = spotipy_client.get.get_album_songs(release_id)
+        songs_to_add_ids.extend(songs_ids)
+
+        songs_to_add_ids = [
+            song for song in songs_to_add_ids
+            if spotipy_client.get.favorite_artist_song(song)
+        ]
+
+    if not songs_to_add_ids:
+        logger.info("No songs or episodes to add to playlist")
+        return
+
+    spotipy_client.post.add_songs_to_playlist(
+        playlist_id=SPOTIFICATIONS_PLAYLIST_ID,
+        songs_ids=songs_to_add_ids,
+    )
+    logger.info(f"Added to playlist: {songs_to_add_ids}")
 
 async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
-    release_id = json.loads(query.data).get("song_id")
-    if release_id is not None:
-        add_release_to_playlist(release_id, spotipy_client)
-        await context.bot.send_message(
-            chat_id=query.message.chat_id,
-            text=f"Added {release_id}"
+    release_uri = json.loads(query.data).get("release_uri")
+    if release_uri is not None:
+        add_release_to_playlist(release_uri, spotipy_client)
+        release = spotipy_client.get.get_release(release_uri=release_uri)
+
+        telegram_client.chat_id = query.message.chat_id
+        telegram_client.send_message_with_image(
+            image_url=release.cover_url,
+            text=f"🎧 Added to playlist!\n\n🎶<b>{release.name}</b> by <b>{release.artists}</b>",
+            keyboard=telegram_client.compose_keyboard(
+                NotificationKeyboardButton(
+                    url=SPOTIFICATIONS_PLAYLIST_LINK,
+                    text="Check ListenToMe playlist!",
+                ).model_dump()
+            )
         )
 
 
