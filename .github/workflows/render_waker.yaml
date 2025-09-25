@@ -3,7 +3,7 @@ name: 🌄 Wake the render.com deployment up
 on:
   workflow_dispatch:
   schedule:
-    - cron: '38 6-21 * * *'
+    - cron: '*/15 3-21 * * *'
 
 jobs:
   run-waker:
