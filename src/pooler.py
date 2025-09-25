@@ -9,7 +9,7 @@ from models import NotificationKeyboardButton
 from clients.telegram_client import TelegramClient
 from constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
 from loguru import logger
-import dummy_port_binder
+import dummy_port_binder  # noqa: F401
 
 load_dotenv()
 spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
