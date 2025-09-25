@@ -1,4 +1,4 @@
-name: 🎧 Crawling latest artists releases
+name: 🌄 Wake the render.com deployment up
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
     - cron: '38 6-21 * * *'
 
 jobs:
-  run-crawler:
+  run-waker:
     runs-on: ubuntu-latest
     steps:
       - name: Wake render.com deployment
