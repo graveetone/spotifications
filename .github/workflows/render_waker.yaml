@@ -1,0 +1,14 @@
+name: 🎧 Crawling latest artists releases
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '38 6-21 * * *'
+
+jobs:
+  run-crawler:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake render.com deployment
+        run: |
+          curl -X GET "https://spotifications.onrender.com"
