@@ -1,19 +1,20 @@
-from telegram import Update
-from telegram.ext import Application, CallbackQueryHandler, ContextTypes
+from fastapi import FastAPI, Request
+
 import json
-from proxy import get_spotify_proxy
-from clients.spotipy_client import SpotipyClient
+from src.proxy import get_spotify_proxy
+from src.clients.spotipy_client import SpotipyClient
 import os
 from dotenv import load_dotenv
-from models import NotificationKeyboardButton
-from clients.telegram_client import TelegramClient
-from constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
+from src.models import NotificationKeyboardButton
+from src.clients.telegram_client import TelegramClient
+from src.constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
 from loguru import logger
-import dummy_port_binder  # noqa: F401
+
 
 load_dotenv()
 spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
 telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TOKEN'])
+app = FastAPI()
 
 
 def add_release_to_playlist(release_id: str, spotipy_client: SpotipyClient):
@@ -41,16 +42,17 @@ def add_release_to_playlist(release_id: str, spotipy_client: SpotipyClient):
     logger.info(f"Added to playlist: {songs_to_add_ids}")
 
 
-async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
+@app.post("/api/webhook")
+async def telegram_webhook(request: Request):
+    webhook_response = await request.json()
+    query = webhook_response['callback_query']
 
-    release_uri = json.loads(query.data).get("release_uri")
+    release_uri = json.loads(query['data']).get("release_uri")
     if release_uri is not None:
         add_release_to_playlist(release_uri, spotipy_client)
         release = spotipy_client.get.get_release(release_uri=release_uri)
 
-        telegram_client.chat_id = query.message.chat_id
+        telegram_client.chat_id = query['message']['chat']['id']
         telegram_client.send_message_with_image(
             image_url=release.cover_url,
             text=f"🎧 Added to playlist!\n\n🎶<b>{release.name}</b> by <b>{release.artists}</b>",
@@ -61,15 +63,4 @@ async def button_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 ).model_dump()
             )
         )
-
-
-def main():
-    app = Application.builder().token(os.environ['TELEGRAM_BOT_TOKEN'],).build()
-
-    app.add_handler(CallbackQueryHandler(button_handler))
-    print("Start pooler")
-    app.run_polling()
-
-
-if __name__ == "__main__":
-    main()
+        return {"ok": True}
