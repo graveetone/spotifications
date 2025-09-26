@@ -1,13 +1,20 @@
 from fastapi import FastAPI, Request
 
 import json
-from src.proxy import get_spotify_proxy
-from src.clients.spotipy_client import SpotipyClient
 import os
 from dotenv import load_dotenv
-from src.models import NotificationKeyboardButton
-from src.clients.telegram_client import TelegramClient
-from src.constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
+try:
+    from src.proxy import get_spotify_proxy
+    from src.clients.spotipy_client import SpotipyClient
+    from src.models import NotificationKeyboardButton
+    from src.clients.telegram_client import TelegramClient
+    from src.constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
+except (ModuleNotFoundError, ImportError):
+    from proxy import get_spotify_proxy
+    from clients.spotipy_client import SpotipyClient
+    from models import NotificationKeyboardButton
+    from clients.telegram_client import TelegramClient
+    from constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
 from loguru import logger
 
 
