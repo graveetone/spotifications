@@ -1,24 +1,19 @@
 from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 
 import json
 import os
 from dotenv import load_dotenv
-load_dotenv()
-try:
-    from src.proxy import get_spotify_proxy
-    from src.clients.spotipy_client import SpotipyClient
-    from src.models import NotificationKeyboardButton
-    from src.clients.telegram_client import TelegramClient
-    from src.constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
-except (ModuleNotFoundError, ImportError):
-    from proxy import get_spotify_proxy
-    from clients.spotipy_client import SpotipyClient
-    from models import NotificationKeyboardButton
-    from clients.telegram_client import TelegramClient
-    from constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
+
+from src.proxy import get_spotify_proxy
+from src.clients.spotipy_client import SpotipyClient
+from src.models import NotificationKeyboardButton
+from src.clients.telegram_client import TelegramClient
+from src.constants import SPOTIFICATIONS_PLAYLIST_LINK, SPOTIFICATIONS_PLAYLIST_ID
 from loguru import logger
 
 
+load_dotenv()
 spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
 telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TOKEN'])
 app = FastAPI()
@@ -49,6 +44,11 @@ def add_release_to_playlist(release_id: str, spotipy_client: SpotipyClient):
     logger.info(f"Added to playlist: {songs_to_add_ids}")
 
 
+@app.get("/")
+def welcome():
+    return HTMLResponse(content="<h1>Welcome to Spotification Webhook</h1>", status_code=200)
+
+
 @app.post("/api/webhook")
 async def telegram_webhook(request: Request):
     webhook_response = await request.json()
@@ -71,7 +71,3 @@ async def telegram_webhook(request: Request):
             )
         )
         return {"ok": True}
-
-@app.get("/env")
-async def env(request: Request):
-    return os.environ
