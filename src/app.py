@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request
 import json
 import os
 from dotenv import load_dotenv
+load_dotenv()
 try:
     from src.proxy import get_spotify_proxy
     from src.clients.spotipy_client import SpotipyClient
@@ -18,7 +19,6 @@ except (ModuleNotFoundError, ImportError):
 from loguru import logger
 
 
-load_dotenv()
 spotipy_client = SpotipyClient(spotipy_client=get_spotify_proxy())
 telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TOKEN'])
 app = FastAPI()
@@ -71,3 +71,7 @@ async def telegram_webhook(request: Request):
             )
         )
         return {"ok": True}
+
+@app.get("/env")
+async def env(request: Request):
+    return os.environ
