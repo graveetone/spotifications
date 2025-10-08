@@ -7,4 +7,5 @@ requires-python = ">=3.9"
 dependencies = [
     "python-dotenv>=1.1.0",
     "spotipy>=2.25.1",
+    "fast-api"==0.117.3,
 ]
