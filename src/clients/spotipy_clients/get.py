@@ -16,6 +16,31 @@ class GetSpotipyClient:
     def __init__(self, spotipy_client):
         self.client = spotipy_client
 
+    def get_playlist_duplicates(self, playlist_id: str):
+        duplicates = {}
+        offset = 0
+        while True:
+            songs, limit, total = self._get_playlist_songs(playlist_id, offset)
+
+            for song in songs:
+                duplicates.setdefault(song['track']["name"], []).append(song['track']["uri"])
+            logger.debug(f"Get songs of playlist {playlist_id}. Offset: {offset}")
+            if total <= offset:
+                break
+            offset += limit
+        breakpoint()
+        return {k: v for k, v in duplicates.items() if len(v) > 1}
+
+    def get_track(self, track_id: str):
+        return self.client.track(track_id)
+
+    def _get_playlist_songs(self, playlist_id: str, offset: int = 0):
+        """Get songs from specific playlist"""
+        response = self.client.playlist_tracks(playlist_id, offset=offset)
+        logger.debug(f"Get songs of playlist {playlist_id}. Offset: {offset}")
+
+        return response["items"], response["limit"], response["total"]
+
     def get_artist_releases(self, artist_id: str, newer_than: Optional[datetime]):
         """Get specific artist's releases newer than provided date"""
         artist_releases = []
