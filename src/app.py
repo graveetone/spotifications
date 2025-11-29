@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
             f"https://api.telegram.org/bot${os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook",
             json={"url": f"https://{domain}/api/webhook"},
         )
-        logger.error(f"https://api.telegram.org/bot${os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook")
+        logger.error(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook")
         logger.error(str({"url": f"https://{domain}/api/webhook"}))
         if response.status_code == "200":
             logger.success(f"Webhook was set to {domain}")
