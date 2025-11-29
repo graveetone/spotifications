@@ -22,7 +22,7 @@ telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TO
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if not os.environ.get("VERCEL"):
+    if os.environ.get("VERCEL"):
         domain = os.environ['VERCEL_PROJECT_PRODUCTION_URL']
         response = requests.post(
             f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook",
