@@ -22,21 +22,21 @@ telegram_client = TelegramClient(chat_id=None, token=os.environ['TELEGRAM_BOT_TO
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if os.environ.get("VERCEL"):
+    if not os.environ.get("VERCEL"):
         domain = os.environ['VERCEL_PROJECT_PRODUCTION_URL']
         response = requests.post(
-            f"https://api.telegram.org/bot${os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook",
+            f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook",
             json={"url": f"https://{domain}/api/webhook"},
         )
-        logger.error(f"https://api.telegram.org/bot{os.environ['TELEGRAM_BOT_TOKEN']}/setWebhook")
-        logger.error(str({"url": f"https://{domain}/api/webhook"}))
-        if response.status_code == "200":
-            logger.success(f"Webhook was set to {domain}")
+
+        if response.status_code == 200:
+            logger.success(f"Webhook was set to '{domain}'")
         else:
             logger.error(
-                f"Failed to set webhook {domain}. Response: {response.json()}"
+                f"Failed to set webhook '{domain}'. Response: {response.status_code} {response.json()}"
             )
-    logger.debug("Webhook was not set as env is not vercel")
+    else:
+        logger.debug("Webhook was not set as env is not vercel")
     yield
 
 
