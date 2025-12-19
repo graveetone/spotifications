@@ -84,9 +84,13 @@ async def telegram_webhook(request: Request):
         release = spotipy_client.get.get_release(release_uri=release_uri)
 
         telegram_client.chat_id = query['message']['chat']['id']
+        text = f"🎧 Added to playlist!\n\n🎶<b>{release.name}</b>"
+        if release.artists:
+            text = f"{text} by <b>{release.artists}</b>"
+
         telegram_client.send_message_with_image(
             image_url=release.cover_url,
-            text=f"🎧 Added to playlist!\n\n🎶<b>{release.name}</b> by <b>{release.artists}</b>",
+            text=text,
             keyboard=telegram_client.compose_keyboard(
                 NotificationKeyboardButton(
                     url=SPOTIFICATIONS_PLAYLIST_LINK,
